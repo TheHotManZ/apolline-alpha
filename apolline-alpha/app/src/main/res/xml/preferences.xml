@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:key="influx_category"
+        app:title="Paramètres InfluxDB">
+
+        <SwitchPreferenceCompat
+            app:key="influx_sync"
+            app:title="Synchronisation InfluxDB"/>
+
+        <EditTextPreference
+            app:key="influx_url"
+            app:title="Adresse InfluxDB"
+            app:defaultValue="http://192.168.1.33:8086/"/>
+
+        <EditTextPreference
+            app:key="influx_user"
+            app:title="Utilisateur InfluxDB"
+            app:defaultValue="android"/>
+
+        <EditTextPreference
+            app:key="influx_pass"
+            app:title="Mot de passe InfluxDB"
+            app:defaultValue="android"/>
+    </PreferenceCategory>
+
+
+
+</PreferenceScreen>

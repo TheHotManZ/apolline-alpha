@@ -1,0 +1,39 @@
+﻿<resources>
+    <string name="app_name">Apolline Alpha</string>
+    <string name="connexion">Connexion</string>
+    <string name="sensor_viewer">Apolline Alpha</string>
+    <string name="envoyer_par_mail">Envoyer par mail</string>
+    <string name="configuration">Configuration</string>
+    <string name="connection">Connection</string>
+    <string name="connexion_au_raspberry">Connexion au capteur bleu (APPA)</string>
+    <string name="se_connecter_au_raspberry">Se connecter au capteur bleu</string>
+    <string name="se_connecter_automatiquement">Se connecter automatiquement   </string>
+    <string name="veuillez_s_lectionner_le_raspberry_dans_la_liste_de_p_riph_riques_ci_dessous">Veuillez sélectionner le capteur bleu dans la liste de périphériques ci-dessous.</string>
+    <string name="imestir_ibrahim">IMESTIR Ibrahim</string>
+    <string name="ii_qb">IMESTIR Ibrahim (app originale) / BERGOUGNOUX Quentin (adaptation)</string>
+    <string name="title_activity_login">Login</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="title_activity_settings">Paramètres</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+</resources>
