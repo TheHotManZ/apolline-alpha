@@ -25,6 +25,12 @@
             app:title="Mot de passe InfluxDB"
             app:defaultValue="android"/>
 
+        <SeekBarPreference
+            app:key="influx_delay"
+            app:title="Délai de synchronisation à InfluxDB"
+            app:defaultValue="20"
+            app:showSeekBarValue="true"/>
+
     </PreferenceCategory>
 
 

@@ -196,26 +196,40 @@ public class MainActivity extends AppCompatActivity {
                 String url = sharedPreferences.getString("influx_url", "");
                 String user = sharedPreferences.getString("influx_user", "");
                 String pass = sharedPreferences.getString("influx_pass", "");
-                InfluxDBSync.influxSetup(url, user, pass);
+                if(InfluxDBSync.influxSetup(url, user, pass))
+                {
+                    /* Sync */
+                    InfluxDBSync.syncSinceLastSync(ctx);
 
-                /* Sync */
-                InfluxDBSync.syncSinceLastSync(ctx);
+                    /* Update last sync date */
+                    Long lastSync = sharedPreferences.getLong("influx_lastsync", Long.parseLong("0"));
+                    Date dtLastSync = new Date(lastSync);
 
-                /* Update last sync date */
-                Long lastSync = sharedPreferences.getLong("influx_lastsync", Long.parseLong("0"));
-                Date dtLastSync = new Date(lastSync);
+                    /* Enable UI again */
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            cfgBtn.setEnabled(true);
+                            connectBtn.setEnabled(true);
+                            sensorBtn.setEnabled(true);
+                            influxBtn.setEnabled(true);
+                            tvLastSync.setText("Dernière sync.: " + dtLastSync.toString());
+                        }
+                    });
+                } else {
+                    /* Enable UI again */
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            cfgBtn.setEnabled(true);
+                            connectBtn.setEnabled(true);
+                            sensorBtn.setEnabled(true);
+                            influxBtn.setEnabled(true);
+                            tvLastSync.setText("Impossible de se connecteur au serveur InfluxDB.");
+                        }
+                    });
+                }
 
-                /* Enable UI again */
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        cfgBtn.setEnabled(true);
-                        connectBtn.setEnabled(true);
-                        sensorBtn.setEnabled(true);
-                        influxBtn.setEnabled(true);
-                        tvLastSync.setText("Dernière sync.: " + dtLastSync.toString());
-                    }
-                });
             }
             catch (Exception e) {
                 runOnUiThread(new Runnable() {

@@ -25,12 +25,45 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 public class BLEService extends Service {
     Context ctx;
     boolean requestedDisconnect = false;
     Boolean syncToInflux = false;
+    boolean synchronizing = false;
+
+    /* InfluxDB sync job */
+    private Runnable syncIDB = new Runnable() {
+
+        @Override
+        public void run() {
+            try {
+                /* Block further sync requests until we are finished */
+                synchronizing = true;
+
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(ctx /* Activity context */);
+                String url = sharedPreferences.getString("influx_url", "");
+                String user = sharedPreferences.getString("influx_user", "");
+                String pass = sharedPreferences.getString("influx_pass", "");
+
+                if(InfluxDBSync.influxSetup(url, user, pass)) {
+                    /* Sync */
+                    InfluxDBSync.syncSinceLastSync(ctx);
+                }
+
+                synchronizing = false;
+            } catch (Exception e)
+            {
+                System.out.println("Error happened while synchronizing : " + e.getMessage());
+                synchronizing = false;
+            }
+
+        }
+    };
 
     /* BLE Callback */
     @SuppressLint("NewApi")
@@ -182,9 +215,6 @@ public class BLEService extends Service {
                     intent.putExtra("Data", data);
                     LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
 
-                    /* Sync with Influx */
-                    if(syncToInflux == true) InfluxDBSync.influxSend(data);
-
                     /* Insert value into local DB */
                     try {
                         AppDatabase db = AppDatabaseSingleton.getInstance(ctx);
@@ -194,6 +224,24 @@ public class BLEService extends Service {
                     } catch (Exception e)
                     {
                         System.out.println("DB: can't persist: " + e.getMessage());
+                    }
+
+                    /* Sync with Influx */
+                    if(syncToInflux == true)
+                    {
+                        /* Get settings */
+                        SharedPreferences sharedPreferences =
+                                PreferenceManager.getDefaultSharedPreferences(ctx /* Activity context */);
+                        int delay = sharedPreferences.getInt("influx_delay", 20);
+                        Long lastSync = sharedPreferences.getLong("influx_lastsync", 0);
+                        Long now = Calendar.getInstance().getTimeInMillis();
+
+                        /* Check if delay expired since last sync */
+                        if(lastSync + 1000*delay <= now)
+                        {
+                            /* Delay expired, synchronize now */
+                            new Thread(syncIDB).start();
+                        }
                     }
                 }
 

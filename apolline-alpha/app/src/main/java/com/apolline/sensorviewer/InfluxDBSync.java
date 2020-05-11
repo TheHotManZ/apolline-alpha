@@ -24,14 +24,16 @@ public class InfluxDBSync {
     //final static String serverURL = "http://192.168.1.33:8086", username = "android", password = "android";
     private static InfluxDB influxDB;
 
-    public static void influxSetup(String url, String user, String pass)
+    public static boolean influxSetup(String url, String user, String pass)
     {
         try {
             influxDB = InfluxDBFactory.connect(url, user, pass);
             System.out.println("InfluxDB: Connected");
+            return true;
         } catch (Exception e)
         {
             System.out.println("InfluxDB: Couldn't connect to InfluxDB (" + e.getMessage() + ")");
+            return false;
         }
     }
 
