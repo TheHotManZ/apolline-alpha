@@ -24,6 +24,7 @@
             app:key="influx_pass"
             app:title="Mot de passe InfluxDB"
             app:defaultValue="android"/>
+
     </PreferenceCategory>
 
 

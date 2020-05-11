@@ -1,12 +1,18 @@
 package com.apolline.sensorviewer;
 
 import android.annotation.SuppressLint;
+import android.hardware.Sensor;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 
 public class SensorDataModel implements Parcelable {
@@ -24,12 +30,21 @@ public class SensorDataModel implements Parcelable {
     private double tempC;
     private double tempK;
     private double volt;
-    private Date date;
+    private Date date, dateLocal;
+
+    public Date getDateLocal() {
+        return dateLocal;
+    }
+
+    public void setDateLocal(Date dateLocal) {
+        this.dateLocal = dateLocal;
+    }
 
     public SensorDataModel()
     {
         pm1 = pm25 = pm10 = tempC = tempK = volt = 0.0f;
         date = new Date();
+        dateLocal = new Date();
     }
 
     public double getPm1() {
@@ -88,6 +103,18 @@ public class SensorDataModel implements Parcelable {
         this.date = date;
     }
 
+    public void fromPersistance(SensorPersistance s)
+    {
+        setDateLocal(new Date(s.dateLocal));
+        setDate(new Date(s.date));
+        setPm1(s.pm1);
+        setPm25(s.pm25);
+        setPm10(s.pm10);
+        setTempC(s.temp);
+        setTempK(s.temp + 273.15f);
+        setVolt(s.volt);
+    }
+
     public boolean StringToModel(String input)
     {
         /* Check if this is a full string coming from the BLE device */
@@ -105,6 +132,8 @@ public class SensorDataModel implements Parcelable {
                 e.printStackTrace();
                 d = new Date();
             }
+
+            dateLocal = Calendar.getInstance().getTime();
 
             /* Parse input values */
             Double pm1 = Double.parseDouble(splitted[SENSOR_PM_1].trim());
@@ -158,6 +187,7 @@ public class SensorDataModel implements Parcelable {
         this.tempK = in.readDouble();
         this.volt = in.readDouble();
         this.date = new Date(in.readLong());
+        this.dateLocal = new Date(in.readLong());
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -183,5 +213,6 @@ public class SensorDataModel implements Parcelable {
         dest.writeDouble(tempK);
         dest.writeDouble(volt);
         dest.writeLong(date.getTime());
+        dest.writeLong(dateLocal.getTime());
     }
 }

@@ -1,5 +1,13 @@
 package com.apolline.sensorviewer;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.hardware.Sensor;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
+
 import com.squareup.okhttp.OkHttpClient;
 
 import org.influxdb.InfluxDB;
@@ -7,6 +15,9 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class InfluxDBSync {
@@ -24,7 +35,7 @@ public class InfluxDBSync {
         }
     }
 
-    public static void influxSend(SensorDataModel data)
+    public static boolean influxSend(SensorDataModel data)
     {
         try {
             /*influxDB.write(Point.measurement("sensor_data")
@@ -37,17 +48,66 @@ public class InfluxDBSync {
                     .build());*/
             influxDB.write(BatchPoints.database("sensor_data")
                     .points(Point.measurement("sensor_values")
-                            .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                            .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
                             //.tag("location", "santa_monica")
                             .field("pm1", data.getPm1())
                             .field("pm25", data.getPm25())
                             .field("pm10", data.getPm10())
                             .field("temp", data.getTempC())
+                            .field("localtime", data.getDateLocal().getTime())
                             .build())
                     .build());
+            return true;
         } catch (Exception e)
         {
             System.out.println("InfluxDB: Couldn't send data - " + e.getMessage());
+            return false;
         }
+    }
+
+    public static void syncSinceLastSync(Context ctx)
+    {
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(ctx /* Activity context */);
+
+        Long curTime = Calendar.getInstance().getTimeInMillis();
+
+        /* Try to get the last sync time; sync everything if no time */
+        Long lastSync = sharedPreferences.getLong("influx_lastsync", Long.parseLong("0"));
+        System.out.println("SYNC: Last sync on " + new Date(lastSync).toString());
+
+        /* Fetch all values since last sync */
+        AppDatabase db = AppDatabaseSingleton.getInstance(ctx);
+        List<SensorPersistance> values = db.sensorDao().loadAllFromLocalDate(lastSync);
+
+        /* Some debug output */
+        System.out.println("SYNC: we have " + values.size() + " values to sync");
+
+        /* Sync each value and remove from DB */
+        for(SensorPersistance s : values)
+        {
+            /* Broadcast sync status */
+            Intent intent = new Intent("SyncUpdate");
+            // You can also include some extra data
+            intent.putExtra("Current", values.indexOf(s));
+            intent.putExtra("Total", values.size());
+            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+
+            /* Create SensorDataModel and sync */
+            SensorDataModel m = new SensorDataModel();
+            m.fromPersistance(s);
+            if(influxSend(m))
+            {
+                /* Remove from local DB if sync succeeded */
+                db.sensorDao().delete(s);
+
+                System.out.println("Synced value taken at " + m.getDate().toString() + " GPS time");
+            } else {
+                System.out.println("Couldn't sync value taken at " + m.getDate().toString() + " GPS time");
+            }
+        }
+
+        /* Update last sync time */
+        sharedPreferences.edit().putLong("influx_lastsync", curTime).apply();
     }
 }

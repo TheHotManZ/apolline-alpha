@@ -22,51 +22,47 @@
         android:id="@+id/connectbutton"
         android:layout_width="225dp"
         android:layout_height="63dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="24dp"
         android:onClick="openConnectionActivity"
         android:text="@string/connexion"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.516"
+        app:layout_constraintHorizontal_bias="0.521"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.464" />
+        app:layout_constraintTop_toBottomOf="@+id/sensorbutton" />
 
     <Button
         android:id="@+id/sensorbutton"
         android:layout_width="225dp"
         android:layout_height="63dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="40dp"
         android:enabled="false"
         android:onClick="showSensors"
         android:text="Capteurs"
-        app:layout_constraintBottom_toTopOf="@+id/connectbutton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.52"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.521"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView10" />
 
     <Button
         android:id="@+id/cfgbutton"
         android:layout_width="225dp"
         android:layout_height="63dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="24dp"
         android:enabled="true"
         android:onClick="openConfigurationActivity"
         android:text="@string/configuration"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.516"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connectbutton"
-        app:layout_constraintVertical_bias="0.017" />
+        app:layout_constraintTop_toBottomOf="@+id/connectbutton" />
 
     <Button
         android:id="@+id/btnStopAll"
         android:layout_width="219dp"
         android:layout_height="45dp"
-        android:layout_marginStart="96dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginStart="76dp"
+        android:layout_marginTop="224dp"
         android:onClick="emergencyExit"
         android:text="Emergency stop"
         android:visibility="invisible"
@@ -95,5 +91,38 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <Button
+        android:id="@+id/btnInflux"
+        android:layout_width="225dp"
+        android:layout_height="63dp"
+        android:layout_marginTop="24dp"
+        android:text="Synchroniser InfluxDB"
+        android:onClick="syncToInflux"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cfgbutton" />
+
+    <TextView
+        android:id="@+id/tvLastSync"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Dernière synchronisation:"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnInflux" />
+
+    <ProgressBar
+        android:id="@+id/pbSync"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="225dp"
+        android:layout_height="10dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.461"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvLastSync" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

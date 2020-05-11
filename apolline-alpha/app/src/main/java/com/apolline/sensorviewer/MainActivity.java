@@ -1,21 +1,39 @@
 package com.apolline.sensorviewer;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
+
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private Button connectBtn;
     private Button cfgBtn;
     private Button sensorBtn;
     private Button stopBtn;
+    private Button influxBtn;
+    private TextView tvLastSync;
+    private ProgressBar pbSync;
 
     private Boolean stop;
+    private Context ctx;
 
     public void showSensors(View view) {
         startActivity(new Intent(this, Sensors.class));
@@ -59,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
         cfgBtn = findViewById(R.id.cfgbutton);
         sensorBtn = findViewById(R.id.sensorbutton);
         stopBtn = findViewById(R.id.btnStopAll);
+        influxBtn = findViewById(R.id.btnInflux);
+        tvLastSync = findViewById(R.id.tvLastSync);
+        pbSync = findViewById(R.id.pbSync);
         stop = true;
 
         BluetoothAdapter bt = BluetoothAdapter.getDefaultAdapter();
@@ -87,6 +108,16 @@ public class MainActivity extends AppCompatActivity {
             connectBtn.setText("Connexion");
             sensorBtn.setEnabled(false);
         }
+
+        /* InfluxDB sync */
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(this /* Activity context */);
+        Long lastSync = sharedPreferences.getLong("influx_lastsync", Long.parseLong("0"));
+        Date dtLastSync = new Date(lastSync);
+        tvLastSync.setText("Dernière sync.: " + dtLastSync.toString());
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mStatusReceiver, new IntentFilter("SyncUpdate"));
     }
 
     @Override
@@ -115,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         stop = true;
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mStatusReceiver);
         super.onDestroy();
     }
 
@@ -122,5 +154,89 @@ public class MainActivity extends AppCompatActivity {
         Intent stopIntent = new Intent(MainActivity.this, BLEService.class);
         stopIntent.setAction("BLE_STOP");
         startService(stopIntent);
+    }
+
+    /* InfluxDB sync status receiver */
+    BroadcastReceiver mStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            /* Get broadcasted data */
+            int current = intent.getIntExtra("Current", 0);
+            int total = intent.getIntExtra("Total", 0);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    pbSync.setMax(total);
+                    pbSync.setProgress(current, true);
+                }
+            });
+        }
+    };
+
+    /* InfluxDB sync Runnable */
+    private Runnable syncIDB = new Runnable() {
+        @Override
+        public void run() {
+            /* Disable input */
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    cfgBtn.setEnabled(false);
+                    connectBtn.setEnabled(false);
+                    sensorBtn.setEnabled(false);
+                    influxBtn.setEnabled(false);
+                    tvLastSync.setText("Synchronisation en cours...");
+                }
+            });
+
+            /* Get settings for Influx connection, and connect */
+            try {
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(ctx /* Activity context */);
+                String url = sharedPreferences.getString("influx_url", "");
+                String user = sharedPreferences.getString("influx_user", "");
+                String pass = sharedPreferences.getString("influx_pass", "");
+                InfluxDBSync.influxSetup(url, user, pass);
+
+                /* Sync */
+                InfluxDBSync.syncSinceLastSync(ctx);
+
+                /* Update last sync date */
+                Long lastSync = sharedPreferences.getLong("influx_lastsync", Long.parseLong("0"));
+                Date dtLastSync = new Date(lastSync);
+
+                /* Enable UI again */
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        cfgBtn.setEnabled(true);
+                        connectBtn.setEnabled(true);
+                        sensorBtn.setEnabled(true);
+                        influxBtn.setEnabled(true);
+                        tvLastSync.setText("Dernière sync.: " + dtLastSync.toString());
+                    }
+                });
+            }
+            catch (Exception e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        cfgBtn.setEnabled(true);
+                        connectBtn.setEnabled(true);
+                        sensorBtn.setEnabled(true);
+                        influxBtn.setEnabled(true);
+                        tvLastSync.setText("Echec de la synchronisation.");
+                        System.out.println("SYNC: " + e.getMessage());
+                    }
+                });
+
+
+            }
+        }
+    };
+
+    public void syncToInflux(View view) {
+        ctx = this;
+        new Thread(syncIDB).start();
     }
 }

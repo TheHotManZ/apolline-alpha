@@ -184,6 +184,17 @@ public class BLEService extends Service {
 
                     /* Sync with Influx */
                     if(syncToInflux == true) InfluxDBSync.influxSend(data);
+
+                    /* Insert value into local DB */
+                    try {
+                        AppDatabase db = AppDatabaseSingleton.getInstance(ctx);
+                        SensorPersistance sp = new SensorPersistance();
+                        sp.fromDataModel(data);
+                        db.sensorDao().insert(sp);
+                    } catch (Exception e)
+                    {
+                        System.out.println("DB: can't persist: " + e.getMessage());
+                    }
                 }
 
                 buf = "";

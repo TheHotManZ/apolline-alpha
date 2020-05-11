@@ -36,9 +36,8 @@ import java.util.HashMap;
 
 public class Sensors extends AppCompatActivity {
     private GraphView graphTemp;
-    private TextView activeSensors;
-    private TextView inactiveSensors;
     private TextView txtBatterie, txtTemp, tvState;
+    private TextView tvPm1, tvPm25, tvPm10;
 
     private Boolean stop;
     private Boolean sensorsFill;
@@ -177,6 +176,11 @@ public class Sensors extends AppCompatActivity {
             /* Update temperature */
             txtTemp.setText("Température: " + data.getTempC() + "°C / " + data.getTempK() + "K");
 
+            /* Set displayed values of sensors */
+            tvPm1.setText(String.format("%.1f", data.getPm1()));
+            tvPm25.setText(String.format("%.1f", data.getPm25()));
+            tvPm10.setText(String.format("%.1f", data.getPm10()));
+
             /* Save data */
             /* commitCSV(data); */
         }
@@ -215,11 +219,12 @@ public class Sensors extends AppCompatActivity {
 
         /* Get references to view objects */
         graphTemp = findViewById(R.id.graphTemp);
-        activeSensors = findViewById(R.id.activeSensors);
-        inactiveSensors = findViewById(R.id.inactiveSensors);
         txtBatterie = findViewById(R.id.txtBatterie);
         txtTemp = findViewById(R.id.txtTemp);
         tvState = findViewById(R.id.tvState);
+        tvPm1 = findViewById(R.id.tvPm1);
+        tvPm25 = findViewById(R.id.tvPm25);
+        tvPm10 = findViewById(R.id.tvPm10);
 
         /* Init graph series */
         pm1series = new LineGraphSeries<DataPoint>();
