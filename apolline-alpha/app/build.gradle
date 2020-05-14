@@ -29,6 +29,9 @@ android {
 
 repositories {
     mavenCentral()
+    google()
+    jcenter()
+    maven { url 'https://maven.google.com' }
 }
 
 dependencies {
@@ -50,4 +53,6 @@ dependencies {
 
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
+    implementation "androidx.lifecycle:lifecycle-extensions:2.0.0"
+
 }

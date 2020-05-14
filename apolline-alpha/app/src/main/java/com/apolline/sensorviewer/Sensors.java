@@ -149,29 +149,34 @@ public class Sensors extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             /* Get broadcasted data */
-            SensorDataModel data = (SensorDataModel)intent.getParcelableExtra("Data");
+            SensorDataModel data = (SensorDataModel) intent.getParcelableExtra("Data");
 
             /* Update graph */
             try {
                 pm1series.appendData(new DataPoint(data.getDate(), data.getPm1()), true, 100, false);
                 pm25series.appendData(new DataPoint(data.getDate(), data.getPm25()), true, 100, false);
                 pm10series.appendData(new DataPoint(data.getDate(), data.getPm10()), true, 100, false);
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 System.out.println("There was an error appending data to the graph. " + e.getMessage());
             }
             /* Update battery power */
             Double bat = data.getVolt();
-            if (bat >= 3.97)
+            if (bat >= 3.97){
                 txtBatterie.setText("Batterie: 80-100%");
-            else if (bat >= 3.87)
+                txtBatterie.setTextColor(Color.BLACK);
+            } else if (bat >= 3.87) {
                 txtBatterie.setText("Batterie: 60-80%");
-            else if (bat >= 3.79)
+                txtBatterie.setTextColor(Color.BLACK);
+            } else if (bat >= 3.79) {
                 txtBatterie.setText("Batterie: 40-60%");
-            else if (bat >= 3.70)
+                txtBatterie.setTextColor(Color.BLACK);
+            } else if (bat >= 3.70) {
                 txtBatterie.setText("Batterie: 20-40%");
-            else
+                txtBatterie.setTextColor(Color.BLACK);
+            } else {
                 txtBatterie.setText("Batterie: 0-20%");
+                txtBatterie.setTextColor(Color.RED);
+            }
 
             /* Update temperature */
             txtTemp.setText("Température: " + data.getTempC() + "°C / " + data.getTempK() + "K");

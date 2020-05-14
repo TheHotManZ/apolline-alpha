@@ -22,11 +22,12 @@ import android.os.IBinder;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.UUID;
 
 public class BLEService extends Service {
@@ -34,6 +35,18 @@ public class BLEService extends Service {
     boolean requestedDisconnect = false;
     Boolean syncToInflux = false;
     boolean synchronizing = false;
+
+    /* Returns true if the app is in foreground, false else */
+    public static boolean isApplicationInForeground()
+    {
+        return ProcessLifecycleOwner.get().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED);
+    }
+
+    /* Returns true if the app is in foreground, false else */
+    public static boolean isApplicationInBackground()
+    {
+        return ProcessLifecycleOwner.get().getLifecycle().getCurrentState() == Lifecycle.State.CREATED;
+    }
 
     /* InfluxDB sync job */
     private Runnable syncIDB = new Runnable() {
@@ -201,9 +214,11 @@ public class BLEService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             //super.onCharacteristicChanged(gatt, characteristic);
             System.out.println("Chara change, UUID " + characteristic.getUuid().toString());
+            System.out.println("App is in " + (isApplicationInForeground()?"foreground":"background"));
             String curBuf = characteristic.getStringValue(0);
             buf += curBuf;
-            System.out.println("buf now: " + buf);
+            //System.out.println("buf now: " + buf);
+
 
             /* We read until the whole data 'line' has been read. Once it is done, parse the line */
             if (buf.contains("\n")) {
@@ -243,6 +258,7 @@ public class BLEService extends Service {
                             new Thread(syncIDB).start();
                         }
                     }
+
                 }
 
                 buf = "";
