@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
+import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
@@ -28,11 +29,11 @@ public class InfluxDBSync {
     {
         try {
             influxDB = InfluxDBFactory.connect(url, user, pass);
-            System.out.println("InfluxDB: Connected");
+            Log.i("IDB", "InfluxDB: Connected");
             return true;
         } catch (Exception e)
         {
-            System.out.println("InfluxDB: Couldn't connect to InfluxDB (" + e.getMessage() + ")");
+            Log.i("IDB", "InfluxDB: Couldn't connect to InfluxDB (" + e.getMessage() + ")");
             return false;
         }
     }
@@ -62,7 +63,7 @@ public class InfluxDBSync {
             return true;
         } catch (Exception e)
         {
-            System.out.println("InfluxDB: Couldn't send data - " + e.getMessage());
+            Log.i("IDB", "InfluxDB: Couldn't send data - " + e.getMessage());
             return false;
         }
     }
@@ -76,14 +77,14 @@ public class InfluxDBSync {
 
         /* Try to get the last sync time; sync everything if no time */
         Long lastSync = sharedPreferences.getLong("influx_lastsync", Long.parseLong("0"));
-        System.out.println("SYNC: Last sync on " + new Date(lastSync).toString());
+        Log.i("IDB", "SYNC: Last sync on " + new Date(lastSync).toString());
 
         /* Fetch all values since last sync */
         AppDatabase db = AppDatabaseSingleton.getInstance(ctx);
         List<SensorPersistance> values = db.sensorDao().loadAllFromLocalDate(lastSync);
 
         /* Some debug output */
-        System.out.println("SYNC: we have " + values.size() + " values to sync");
+        Log.i("IDB", "SYNC: we have " + values.size() + " values to sync");
 
         /* Sync each value and remove from DB */
         for(SensorPersistance s : values)
@@ -103,9 +104,9 @@ public class InfluxDBSync {
                 /* Remove from local DB if sync succeeded */
                 db.sensorDao().delete(s);
 
-                System.out.println("Synced value taken at " + m.getDate().toString() + " GPS time");
+                Log.i("IDB", "Synced value taken at " + m.getDate().toString() + " GPS time");
             } else {
-                System.out.println("Couldn't sync value taken at " + m.getDate().toString() + " GPS time");
+                Log.i("IDB", "Couldn't sync value taken at " + m.getDate().toString() + " GPS time");
             }
         }
 

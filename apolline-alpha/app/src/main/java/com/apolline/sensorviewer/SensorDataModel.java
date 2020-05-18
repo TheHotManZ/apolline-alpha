@@ -121,7 +121,7 @@ public class SensorDataModel implements Parcelable {
         if (input.contains("\n"))
         {
             final String[] splitted = input.split(";");
-            System.out.println(Arrays.toString(splitted));
+            //System.out.println(Arrays.toString(splitted));
 
             /* Update graph with PM1, PM2.5, PM10 */
             @SuppressLint("SimpleDateFormat") SimpleDateFormat dateformat = new SimpleDateFormat("y_M_d_H_m_s");

@@ -16,10 +16,12 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -157,7 +159,7 @@ public class Sensors extends AppCompatActivity {
                 pm25series.appendData(new DataPoint(data.getDate(), data.getPm25()), true, 100, false);
                 pm10series.appendData(new DataPoint(data.getDate(), data.getPm10()), true, 100, false);
             } catch (Exception e) {
-                System.out.println("There was an error appending data to the graph. " + e.getMessage());
+                Log.i("BLU", "There was an error appending data to the graph. " + e.getMessage());
             }
             /* Update battery power */
             Double bat = data.getVolt();

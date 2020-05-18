@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -81,11 +82,11 @@ public class Connection extends AppCompatActivity {
                 if(boundedDevices.contains(mDetectedDevices.get(mac)))
                 {
                     Toast.makeText(getApplicationContext(),"No pairing required, connecting to device",Toast.LENGTH_SHORT).show();
-                    System.out.println("No pairing required");
+                    Log.i("BLE", "No pairing required");
                     Utils.registerAddress(mac);
                     Utils.setSelectedDevice(mDetectedDevices.get(mac));
                 } else {
-                    System.out.println("Device requires pairing - default PIN is 4545");
+                    Log.i("BLE", "Device requires pairing - default PIN is 4545");
                     Toast.makeText(getApplicationContext(),"Pairing required, default PIN is 4545",Toast.LENGTH_SHORT).show();
                     mDetectedDevices.get(mac).createBond();
                     Utils.registerAddress(mac);
@@ -93,7 +94,7 @@ public class Connection extends AppCompatActivity {
                 }
 
                 /* Start BLE Service */
-                System.out.println("Starting Bluetooth Low Energy service");
+                Log.i("BLE", "Starting Bluetooth Low Energy service");
                 Intent serviceIntent = new Intent(ctx, BLEService.class);
                 serviceIntent.setAction("BLE_START");
                 ContextCompat.startForegroundService(ctx, serviceIntent);

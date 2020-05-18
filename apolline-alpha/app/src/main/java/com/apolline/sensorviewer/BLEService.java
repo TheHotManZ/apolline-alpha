@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -71,7 +72,7 @@ public class BLEService extends Service {
                 synchronizing = false;
             } catch (Exception e)
             {
-                System.out.println("Error happened while synchronizing : " + e.getMessage());
+                Log.i("BLE", "Error happened while synchronizing : " + e.getMessage());
                 synchronizing = false;
             }
 
@@ -87,7 +88,7 @@ public class BLEService extends Service {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic
                 characteristic, int status) {
-            System.out.println("Characteristic was written, status " + status);
+            Log.i("BLE", "Characteristic was written, status " + status);
         }
 
         /* When the connection state changes - used to start configuration process, or reconnect when disconnected */
@@ -95,10 +96,10 @@ public class BLEService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                System.out.println("GATT - Connected to GATT server");
+                Log.i("BLE", "GATT - Connected to GATT server");
                 updateStatus("Connecté au capteur");
                 buf = "";
-                System.out.println("GATT - Attempting to start service discovery -> " + gatt.discoverServices());
+                Log.i("BLE", "GATT - Attempting to start service discovery -> " + gatt.discoverServices());
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 System.out.println("GATT - Disconnected from GATT server, reconnecting");
                 if(requestedDisconnect == false) {
@@ -120,7 +121,7 @@ public class BLEService extends Service {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 updateStatus("Configuration du capteur...");
-                System.out.println("GATT - Service discovered");
+                Log.i("BLE", "GATT - Service discovered");
 
                 BluetoothGattService mSVC = gatt.getService(UUID.fromString("49535343-fe7d-4ae5-8fa9-9fafd205e455"));
                 BluetoothGattCharacteristic mCH = mSVC.getCharacteristic(UUID.fromString(SampleGattAttributes.DATA_DUST_SENSOR));
@@ -145,9 +146,9 @@ public class BLEService extends Service {
                         BluetoothGattDescriptor desc = mCH.getDescriptor(UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
                         desc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                         if (gatt.writeDescriptor(desc))
-                            System.out.println("Enabled notifications for Dust Sensor");
+                            Log.i("BLE", "Enabled notifications for Dust Sensor");
                         else
-                            System.out.println("Can't enable notifications for Dust Sensor");
+                            Log.i("BLE", "Can't enable notifications for Dust Sensor");
                     }
                 }
 
@@ -157,7 +158,7 @@ public class BLEService extends Service {
                     e.printStackTrace();
                 }
             } else {
-                System.out.println("GATT - Service discovery status " + status);
+                Log.i("BLE", "GATT - Service discovery status " + status);
             }
         }
 
@@ -165,7 +166,7 @@ public class BLEService extends Service {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            System.out.println("Descriptor written - now we should enable streaming requests");
+            Log.i("BLE", "Descriptor written - now we should enable streaming requests");
             updateStatus("Début de l'envoi des données");
 
             BluetoothGattService mSVC = gatt.getService(UUID.fromString("49535343-fe7d-4ae5-8fa9-9fafd205e455"));
@@ -173,8 +174,8 @@ public class BLEService extends Service {
 
             mCH.setValue("c");
             if (gatt.writeCharacteristic(mCH)) {
-                System.out.println("Write OK");
-            } else System.out.println("Write NOT OK");
+                Log.i("BLE", "Write OK");
+            } else Log.i("BLE", "Write NOT OK");
 
             updateStatus("Acquisition en cours.");
             /*runOnUiThread(new Runnable() {
@@ -191,9 +192,9 @@ public class BLEService extends Service {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                System.out.println("Char read " + characteristic.getStringValue(0));
+                Log.i("BLE", "Char read " + characteristic.getStringValue(0));
             } else {
-                System.out.println("Error during read of char, status " + status);
+                Log.i("BLE", "Error during read of char, status " + status);
             }
         }
 
@@ -213,8 +214,8 @@ public class BLEService extends Service {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             //super.onCharacteristicChanged(gatt, characteristic);
-            System.out.println("Chara change, UUID " + characteristic.getUuid().toString());
-            System.out.println("App is in " + (isApplicationInForeground()?"foreground":"background"));
+            //Log.i("BLE", "Chara change, UUID " + characteristic.getUuid().toString());
+            //Log.i("BLE", "App is in " + (isApplicationInForeground()?"foreground":"background"));
             String curBuf = characteristic.getStringValue(0);
             buf += curBuf;
             //System.out.println("buf now: " + buf);
@@ -238,7 +239,7 @@ public class BLEService extends Service {
                         db.sensorDao().insert(sp);
                     } catch (Exception e)
                     {
-                        System.out.println("DB: can't persist: " + e.getMessage());
+                        Log.i("BLE", "DB: can't persist: " + e.getMessage());
                     }
 
                     /* Sync with Influx */
@@ -301,7 +302,7 @@ public class BLEService extends Service {
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("Capteur bleu")
                     .setContentText("Acquisition des mesures en cours...")
-                    .setSmallIcon(R.drawable.ic_launcher_background)
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
                     .setContentIntent(pendingIntent)
                     .build();
 

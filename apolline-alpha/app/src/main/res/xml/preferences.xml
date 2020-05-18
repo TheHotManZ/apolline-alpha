@@ -8,7 +8,8 @@
 
         <SwitchPreferenceCompat
             app:key="influx_sync"
-            app:title="Synchronisation InfluxDB"/>
+            app:title="Synchronisation InfluxDB"
+            app:defaultValue="false"/>
 
         <EditTextPreference
             app:key="influx_url"
