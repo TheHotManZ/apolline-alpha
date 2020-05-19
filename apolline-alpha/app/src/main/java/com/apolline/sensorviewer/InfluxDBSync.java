@@ -38,9 +38,15 @@ public class InfluxDBSync {
         }
     }
 
-    public static boolean influxSend(SensorDataModel data)
+    public static boolean influxSend(SensorDataModel data, Context ctx)
     {
         try {
+            SharedPreferences sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(ctx /* Activity context */);
+
+            /* Try to get the last sync time; sync everything if no time */
+            String node = sharedPreferences.getString("influx_node", "QZ");
+
             /*influxDB.write(Point.measurement("sensor_data")
                     .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                     //.tag("location", "santa_monica")
@@ -49,15 +55,44 @@ public class InfluxDBSync {
                     .addField("pm10", data.getPm10())
                     .addField("temp", data.getTempC())
                     .build());*/
-            influxDB.write(BatchPoints.database("sensor_data")
-                    .points(Point.measurement("sensor_values")
-                            .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
-                            //.tag("location", "santa_monica")
-                            .field("pm1", data.getPm1())
-                            .field("pm25", data.getPm25())
-                            .field("pm10", data.getPm10())
-                            .field("temp", data.getTempC())
-                            .field("localtime", data.getDateLocal().getTime())
+            Point pm1 = Point.measurement("dust_pm1")
+                    .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
+                    .tag("device", node)
+                    .field("value", data.getPm1()).build();
+            Point pm25 = Point.measurement("dust_pm2.5")
+                    .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
+                    .tag("device", node)
+                    .field("value", data.getPm25()).build();
+            Point pm10 = Point.measurement("dust_pm10")
+                    .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
+                    .tag("device", node)
+                    .field("value", data.getPm10()).build();
+
+            BatchPoints p = BatchPoints.database("qarpediem").points(pm1, pm25, pm10).build();
+
+            influxDB.write(p);
+            return true;
+        } catch (Exception e)
+        {
+            Log.i("IDB", "InfluxDB: Couldn't send data - " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean influxRegisterNode(Context ctx)
+    {
+        try {
+            SharedPreferences sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(ctx /* Activity context */);
+
+            /* Try to get the last sync time; sync everything if no time */
+            String node = sharedPreferences.getString("influx_node", "QZ");
+
+
+            influxDB.write(BatchPoints.database("qarpediem")
+                    .points(Point.measurement("address")
+                            .tag("device", node)
+                            .field("dummy", "")
                             .build())
                     .build());
             return true;
@@ -86,6 +121,9 @@ public class InfluxDBSync {
         /* Some debug output */
         Log.i("IDB", "SYNC: we have " + values.size() + " values to sync");
 
+        /* Register node */
+        // influxRegisterNode(ctx);
+
         /* Sync each value and remove from DB */
         for(SensorPersistance s : values)
         {
@@ -99,7 +137,7 @@ public class InfluxDBSync {
             /* Create SensorDataModel and sync */
             SensorDataModel m = new SensorDataModel();
             m.fromPersistance(s);
-            if(influxSend(m))
+            if(influxSend(m, ctx))
             {
                 /* Remove from local DB if sync succeeded */
                 db.sensorDao().delete(s);
