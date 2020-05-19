@@ -58,15 +58,18 @@ public class InfluxDBSync {
             Point pm1 = Point.measurement("dust_pm1")
                     .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
                     .tag("device", node)
-                    .field("value", data.getPm1()).build();
+                    .field("value", data.getPm1())
+                    .field("localtime", data.getDateLocal().getTime()).build();
             Point pm25 = Point.measurement("dust_pm2.5")
                     .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
                     .tag("device", node)
-                    .field("value", data.getPm25()).build();
+                    .field("value", data.getPm25())
+                    .field("localtime", data.getDateLocal().getTime()).build();
             Point pm10 = Point.measurement("dust_pm10")
                     .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
                     .tag("device", node)
-                    .field("value", data.getPm10()).build();
+                    .field("value", data.getPm10())
+                    .field("localtime", data.getDateLocal().getTime()).build();
 
             BatchPoints p = BatchPoints.database("qarpediem").points(pm1, pm25, pm10).build();
 
