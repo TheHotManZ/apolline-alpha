@@ -16,12 +16,14 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.Date;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private Button connectBtn;
@@ -118,6 +120,14 @@ public class MainActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mStatusReceiver, new IntentFilter("SyncUpdate"));
+
+        /* Check if we have a valid device UUID yet */
+        String DeviceUUID = sharedPreferences.getString("device_uuid", "ffffffff-ffff-ffff-ffff-ffffffffffff");
+        if(DeviceUUID.equals("ffffffff-ffff-ffff-ffff-ffffffffffff"))
+        {
+            sharedPreferences.edit().putString("device_uuid", UUID.randomUUID().toString()).apply();
+            Log.i("UUID", "Built new device UUID");
+        }
     }
 
     @Override

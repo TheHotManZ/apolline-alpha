@@ -3,6 +3,15 @@ package com.apolline.sensorviewer;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverter;
+import androidx.room.TypeConverters;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+
+
 
 @Entity(tableName = "sensor_values")
 public class SensorPersistance {
@@ -12,28 +21,21 @@ public class SensorPersistance {
     @ColumnInfo(name = "dateLocal")
     public long dateLocal;
 
-    @ColumnInfo(name = "pm1")
-    public Double pm1;
+    @ColumnInfo(name = "deviceName")
+    public String deviceName;
 
-    @ColumnInfo(name = "pm25")
-    public Double pm25;
+    @ColumnInfo(name = "deviceUUID")
+    public String deviceUUID;
 
-    @ColumnInfo(name = "pm10")
-    public Double pm10;
-
-    @ColumnInfo(name = "temp")
-    public Double temp;
-
-    @ColumnInfo(name = "volt")
-    public Double volt;
+    @ColumnInfo(name = "rawValues")
+    @TypeConverters({DAOStringArrayConverter.class})
+    public String[] rawValues;
 
     public void fromDataModel(SensorDataModel model) {
         date = model.getDate().getTime();
-        dateLocal = model.getDate().getTime();
-        pm1 = model.getPm1();
-        pm25 = model.getPm25();
-        pm10 = model.getPm10();
-        temp = model.getTempC();
-        volt = model.getVolt();
+        dateLocal = model.getDateLocal().getTime();
+        rawValues = model.rawValues;
+        deviceName = model.getDeviceName();
+        deviceUUID = model.getDeviceUUID();
     }
 }

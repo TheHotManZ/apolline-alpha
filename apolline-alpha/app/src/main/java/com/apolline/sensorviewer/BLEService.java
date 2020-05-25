@@ -6,6 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -226,6 +227,8 @@ public class BLEService extends Service {
                 SensorDataModel data = new SensorDataModel();
                 if(data.StringToModel(buf))
                 {
+                    data.setDeviceName(gatt.getDevice().getName());
+                    data.setDeviceUUID(DeviceUUID);
                     Intent intent = new Intent("SensorUpdate");
                     // You can also include some extra data
                     intent.putExtra("Data", data);
@@ -273,6 +276,8 @@ public class BLEService extends Service {
     /* GATT device */
     BluetoothGatt gattDevice;
 
+    /* Device UUID */
+    String DeviceUUID = "";
     @Override
     public void onCreate() {
         super.onCreate();
@@ -320,6 +325,9 @@ public class BLEService extends Service {
             String user = sharedPreferences.getString("influx_user", "");
             String pass = sharedPreferences.getString("influx_pass", "");
             if(syncToInflux == true) InfluxDBSync.influxSetup(url, user, pass);
+
+            /* Get device UUID */
+            DeviceUUID = sharedPreferences.getString("device_uuid", "ffffffff-ffff-ffff-ffff-ffffffffffff");
 
             /* Start the GATT callback, then start the threads */
             BluetoothDevice dev = Utils.getSelectedDevice();

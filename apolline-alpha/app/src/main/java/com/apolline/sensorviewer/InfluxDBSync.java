@@ -38,6 +38,32 @@ public class InfluxDBSync {
         }
     }
 
+    public static Point buildMeasurement(SensorDataModel data, int value)
+    {
+        /* Check we have a measurement for this */
+        String tbName = SensorDataModel.SENSOR_MEASUREMENTS[value];
+        if(tbName.equals("")) {
+            Log.i("IDB", "Null measurement name for data index " + value);
+            return null;
+        }
+
+        /* Build measurement */
+        Point pm = Point.measurement(SensorDataModel.SENSOR_MEASUREMENTS[value])
+                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                .tag("device", data.getDeviceName())
+                .tag("geohash", "no")
+                .tag("provider", "no")
+                .tag("transport", "no")
+                .tag("unit", SensorDataModel.SENSOR_UNITS[value])
+                .tag("uuid", data.getDeviceUUID())
+                .field("latitude", data.getDouble(SensorDataModel.SENSOR_LATITUDE))
+                .field("longitude", data.getDouble(SensorDataModel.SENSOR_LONGITUDE))
+                .field("value", data.getDouble(value))
+                .build();
+
+        return pm;
+    }
+
     public static boolean influxSend(SensorDataModel data, Context ctx)
     {
         try {
@@ -55,7 +81,7 @@ public class InfluxDBSync {
                     .addField("pm10", data.getPm10())
                     .addField("temp", data.getTempC())
                     .build());*/
-            Point pm1 = Point.measurement("dust_pm1")
+            /*Point pm1 = Point.measurement("dust_pm1")
                     .time(data.getDate().getTime(), TimeUnit.MILLISECONDS)
                     .tag("device", node)
                     .field("value", data.getPm1())
@@ -73,7 +99,51 @@ public class InfluxDBSync {
 
             BatchPoints p = BatchPoints.database("qarpediem").points(pm1, pm25, pm10).build();
 
+            influxDB.write(p);*/
+
+            Point pm1 = buildMeasurement(data, SensorDataModel.SENSOR_PM_1);
+            Point pm25 = buildMeasurement(data, SensorDataModel.SENSOR_PM_2_5);
+            Point pm10 = buildMeasurement(data, SensorDataModel.SENSOR_PM_10);
+            Point pm1above = buildMeasurement(data, SensorDataModel.SENSOR_PM_1_ABOVE);
+            Point pm25above = buildMeasurement(data, SensorDataModel.SENSOR_PM_25_ABOVE);
+            Point pm10above = buildMeasurement(data, SensorDataModel.SENSOR_PM10_ABOVE);
+            Point pm03above = buildMeasurement(data, SensorDataModel.SENSOR_PM_03_ABOVE);
+            Point pm05above = buildMeasurement(data, SensorDataModel.SENSOR_PM_05_ABOVE);
+            Point pm5above = buildMeasurement(data, SensorDataModel.SENSOR_PM5_ABOVE);
+            Point tempC = buildMeasurement(data, SensorDataModel.SENSOR_TEMP);
+            Point hum = buildMeasurement(data, SensorDataModel.SENSOR_HUMIDITY);
+
+            /* Leftovers requiring additional parsing : temperature °K and compensated humidity */
+            Point tempK = Point.measurement("temperature.k")
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .tag("device", data.getDeviceName())
+                    .tag("geohash", "no")
+                    .tag("provider", "no")
+                    .tag("transport", "no")
+                    .tag("unit", Unit.TEMPERATURE_KELVIN)
+                    .tag("uuid", data.getDeviceUUID())
+                    .field("latitude", data.getDouble(SensorDataModel.SENSOR_LATITUDE))
+                    .field("longitude", data.getDouble(SensorDataModel.SENSOR_LONGITUDE))
+                    .field("value", data.getTempK())
+                    .build();
+
+            Point rht = Point.measurement("humidity.compensated")
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .tag("device", data.getDeviceName())
+                    .tag("geohash", "no")
+                    .tag("provider", "no")
+                    .tag("transport", "no")
+                    .tag("unit", Unit.PERCENTAGE)
+                    .tag("uuid", data.getDeviceUUID())
+                    .field("latitude", data.getDouble(SensorDataModel.SENSOR_LATITUDE))
+                    .field("longitude", data.getDouble(SensorDataModel.SENSOR_LONGITUDE))
+                    .field("value", data.getDouble(SensorDataModel.SENSOR_HUMIDITY) / (1.0546 - 0.00216 * (data.getTempK() - 273.15)) * 10)
+                    .build();
+
+            BatchPoints p = BatchPoints.database("loa").points(pm1, pm25, pm10, pm1above, pm25above, pm10above, pm03above, pm05above, pm5above, tempC, tempK, hum, rht).build();
+
             influxDB.write(p);
+
             return true;
         } catch (Exception e)
         {
@@ -127,6 +197,8 @@ public class InfluxDBSync {
         /* Register node */
         // influxRegisterNode(ctx);
 
+        boolean hadError = false;
+
         /* Sync each value and remove from DB */
         for(SensorPersistance s : values)
         {
@@ -148,10 +220,15 @@ public class InfluxDBSync {
                 Log.i("IDB", "Synced value taken at " + m.getDate().toString() + " GPS time");
             } else {
                 Log.i("IDB", "Couldn't sync value taken at " + m.getDate().toString() + " GPS time");
+                hadError = true;
             }
         }
 
-        /* Update last sync time */
-        sharedPreferences.edit().putLong("influx_lastsync", curTime).apply();
+        /* Only update last full sync time if there is no orphan values left */
+        if(!hadError)
+        {
+            /* Update last sync time */
+            sharedPreferences.edit().putLong("influx_lastsync", curTime).apply();
+        }
     }
 }

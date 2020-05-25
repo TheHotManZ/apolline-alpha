@@ -16,21 +16,114 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class SensorDataModel implements Parcelable {
+    /* Static configuration of sensor here */
     /* Indexes of values */
     public static final int SENSOR_DATE = 0;
     public static final int SENSOR_PM_1 = 1;
     public static final int SENSOR_PM_2_5 = 2;
     public static final int SENSOR_PM_10 = 3;
+    public static final int SENSOR_PM_03_ABOVE   = 4;
+    public static final int SENSOR_PM_05_ABOVE  = 5;
+    public static final int SENSOR_PM_1_ABOVE  = 6;
+    public static final int SENSOR_PM_25_ABOVE    = 7;
+    public static final int SENSOR_PM5_ABOVE  = 8;
+    public static final int SENSOR_PM10_ABOVE = 9;
+    public static final int SENSOR_LATITUDE = 10;
+    public static final int SENSOR_LONGITUDE = 11;
+    public static final int SENSOR_ALTITUDE =  12;
+    public static final int SENSOR_SPEED    = 13;
+    public static final int SENSOR_SAT  =   14;
+    public static final int SENSOR_TEMPC    = 15;
+    public static final int SENSOR_PRESSURE = 16;
     public static final int SENSOR_TEMP = 17;
+    public static final int SENSOR_HUMIDITY = 18;
     public static final int SENSOR_VOLT = 19;
+    public static final int SENSOR_INTERNALTEMP = 20;
+    public static final int SENSOR_INTERNALHUMIDITY = 21;
 
-    private double pm1;
-    private double pm25;
-    private double pm10;
-    private double tempC;
-    private double tempK;
-    private double volt;
+    public static final String[] SENSOR_MEASUREMENTS = {
+            "",
+            "pm.01.value",
+            "pm.2.5.value",
+            "pm.10.value",
+            "pm.0.3.above",
+            "pm.0.5.above",
+            "pm.1.above",
+            "pm.2.5.above",
+            "pm.5.above",
+            "pm.10.above",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "temperature.c",
+            "humidity",
+            "",
+            "",
+            "",
+    };
+
+    public static final String[] SENSOR_UNITS = {
+            "",
+            Unit.CONCENTRATION_UG_M3,
+            Unit.CONCENTRATION_UG_M3,
+            Unit.CONCENTRATION_UG_M3,
+            Unit.CONCENTRATION_ABOVE,
+            Unit.CONCENTRATION_ABOVE,
+            Unit.CONCENTRATION_ABOVE,
+            Unit.CONCENTRATION_ABOVE,
+            Unit.CONCENTRATION_ABOVE,
+            Unit.CONCENTRATION_ABOVE,
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            Unit.TEMPERATURE_CELCIUS,
+            Unit.PERCENTAGE,
+            "",
+            "",
+            "",
+    };
+
+
+    public String getDeviceName() {
+        return DeviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        DeviceName = deviceName;
+    }
+
+    public String getDeviceUUID() {
+        return DeviceUUID;
+    }
+
+    public void setDeviceUUID(String deviceUUID) {
+        DeviceUUID = deviceUUID;
+    }
+
+    private String DeviceName;
+    private String DeviceUUID;
+
     private Date date, dateLocal;
+
+    public String[] rawValues;
+
+    public double getDouble(int value)
+    {
+        return Double.parseDouble(rawValues[value].trim());
+    }
+
+    public void setDouble(int value, double data)
+    {
+        rawValues[value] = String.valueOf(data);
+    }
 
     public Date getDateLocal() {
         return dateLocal;
@@ -38,61 +131,6 @@ public class SensorDataModel implements Parcelable {
 
     public void setDateLocal(Date dateLocal) {
         this.dateLocal = dateLocal;
-    }
-
-    public SensorDataModel()
-    {
-        pm1 = pm25 = pm10 = tempC = tempK = volt = 0.0f;
-        date = new Date();
-        dateLocal = new Date();
-    }
-
-    public double getPm1() {
-        return pm1;
-    }
-
-    public void setPm1(double pm1) {
-        this.pm1 = pm1;
-    }
-
-    public double getPm25() {
-        return pm25;
-    }
-
-    public void setPm25(double pm25) {
-        this.pm25 = pm25;
-    }
-
-    public double getPm10() {
-        return pm10;
-    }
-
-    public void setPm10(double pm10) {
-        this.pm10 = pm10;
-    }
-
-    public double getTempC() {
-        return tempC;
-    }
-
-    public void setTempC(double tempC) {
-        this.tempC = tempC;
-    }
-
-    public double getTempK() {
-        return tempK;
-    }
-
-    public void setTempK(double tempK) {
-        this.tempK = tempK;
-    }
-
-    public double getVolt() {
-        return volt;
-    }
-
-    public void setVolt(double volt) {
-        this.volt = volt;
     }
 
     public Date getDate() {
@@ -103,16 +141,25 @@ public class SensorDataModel implements Parcelable {
         this.date = date;
     }
 
+    public double getTempK()
+    {
+        return getDouble(SENSOR_TEMP) + 273.15f;
+    }
+
+    public SensorDataModel()
+    {
+        date = new Date();
+        dateLocal = new Date();
+    }
+
+
     public void fromPersistance(SensorPersistance s)
     {
         setDateLocal(new Date(s.dateLocal));
         setDate(new Date(s.date));
-        setPm1(s.pm1);
-        setPm25(s.pm25);
-        setPm10(s.pm10);
-        setTempC(s.temp);
-        setTempK(s.temp + 273.15f);
-        setVolt(s.volt);
+        rawValues = s.rawValues;
+        setDeviceUUID(s.deviceUUID);
+        setDeviceName(s.deviceName);
     }
 
     public boolean StringToModel(String input)
@@ -121,51 +168,23 @@ public class SensorDataModel implements Parcelable {
         if (input.contains("\n"))
         {
             final String[] splitted = input.split(";");
-            //System.out.println(Arrays.toString(splitted));
+            rawValues = splitted;
+            System.out.println(Arrays.toString(splitted));
 
             /* Update graph with PM1, PM2.5, PM10 */
             @SuppressLint("SimpleDateFormat") SimpleDateFormat dateformat = new SimpleDateFormat("y_M_d_H_m_s");
             Date d;
             try {
-                d = dateformat.parse(splitted[SENSOR_DATE]);
+                date = dateformat.parse(splitted[SENSOR_DATE].trim());
             } catch (ParseException e) {
                 e.printStackTrace();
-                d = new Date();
+                date = Calendar.getInstance().getTime();
             }
 
             dateLocal = Calendar.getInstance().getTime();
 
-            /* Parse input values */
-            Double pm1 = Double.parseDouble(splitted[SENSOR_PM_1].trim());
-            Double pm25 = Double.parseDouble(splitted[SENSOR_PM_2_5].trim());
-            Double pm10 = Double.parseDouble(splitted[SENSOR_PM_10].trim());
-            Double bat = Double.parseDouble(splitted[SENSOR_VOLT].trim());
-            Double tmp = Double.parseDouble(splitted[SENSOR_TEMP].trim());
-
-            /* Output values */
-            setPm1(pm1);
-            setPm25(pm25);
-            setPm10(pm10);
-            setVolt(bat);
-            setTempC(tmp);
-            setTempK(tmp + 273.15f);
-
             return true;
         } else return false;
-    }
-
-    public String toCSVLine()
-    {
-        String res = "";
-        res += date.toString() + ",";
-        res += pm1 + ",";
-        res += pm25 + ",";
-        res += pm10 + ",";
-        res += volt + ",";
-        res += tempC + ",";
-        res += tempK;
-        res += '\n';
-        return res;
     }
 
     /* Parceling stuff */
@@ -180,14 +199,11 @@ public class SensorDataModel implements Parcelable {
         - date, stored as long for performance issues
      */
     public SensorDataModel(Parcel in){
-        this.pm1 = in.readDouble();
-        this.pm25 = in.readDouble();
-        this.pm10 =  in.readDouble();
-        this.tempC = in.readDouble();
-        this.tempK = in.readDouble();
-        this.volt = in.readDouble();
         this.date = new Date(in.readLong());
         this.dateLocal = new Date(in.readLong());
+        this.rawValues = (String[])in.readArray(String.class.getClassLoader());
+        this.DeviceName = in.readString();
+        this.DeviceUUID = in.readString();
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -206,13 +222,10 @@ public class SensorDataModel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeDouble(pm1);
-        dest.writeDouble(pm25);
-        dest.writeDouble(pm10);
-        dest.writeDouble(tempC);
-        dest.writeDouble(tempK);
-        dest.writeDouble(volt);
         dest.writeLong(date.getTime());
         dest.writeLong(dateLocal.getTime());
+        dest.writeArray(rawValues);
+        dest.writeString(DeviceName);
+        dest.writeString(DeviceUUID);
     }
 }

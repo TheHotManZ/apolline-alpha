@@ -123,28 +123,6 @@ public class Sensors extends AppCompatActivity {
         finish();
     }
 
-    /* TODO : might be doing this better by just opening the file on startup, and just appending on the fly */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void commitCSV(SensorDataModel data)
-    {
-        File file = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-        if(!file.exists())
-            file.mkdir();
-
-
-
-        try {
-           File outFile = new File(file, CSV_FILENAME);
-           FileWriter wr = new FileWriter(outFile, true);
-            wr.append(data.toCSVLine());
-            wr.flush();
-            wr.close();
-            System.out.println("Saving to " + outFile.toString());
-        } catch (Exception e) {
-            System.out.println("Couldn't save data: " + e.getMessage());
-        }
-    }
-
     /* Incoming data from BLE device */
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -155,14 +133,14 @@ public class Sensors extends AppCompatActivity {
 
             /* Update graph */
             try {
-                pm1series.appendData(new DataPoint(data.getDate(), data.getPm1()), true, 100, false);
-                pm25series.appendData(new DataPoint(data.getDate(), data.getPm25()), true, 100, false);
-                pm10series.appendData(new DataPoint(data.getDate(), data.getPm10()), true, 100, false);
+                pm1series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_1)), true, 100, false);
+                pm25series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_2_5)), true, 100, false);
+                pm10series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_10)), true, 100, false);
             } catch (Exception e) {
                 Log.i("BLU", "There was an error appending data to the graph. " + e.getMessage());
             }
             /* Update battery power */
-            Double bat = data.getVolt();
+            Double bat = data.getDouble(SensorDataModel.SENSOR_VOLT);
             if (bat >= 3.97){
                 txtBatterie.setText("Batterie: 80-100%");
                 txtBatterie.setTextColor(Color.BLACK);
@@ -181,12 +159,12 @@ public class Sensors extends AppCompatActivity {
             }
 
             /* Update temperature */
-            txtTemp.setText("Température: " + data.getTempC() + "°C / " + data.getTempK() + "K");
+            txtTemp.setText("Température: " + data.getDouble(SensorDataModel.SENSOR_TEMP) + "°C / " + data.getTempK() + "K");
 
             /* Set displayed values of sensors */
-            tvPm1.setText(String.format("%.1f", data.getPm1()));
-            tvPm25.setText(String.format("%.1f", data.getPm25()));
-            tvPm10.setText(String.format("%.1f", data.getPm10()));
+            tvPm1.setText(String.format("%.1f", data.getDouble(SensorDataModel.SENSOR_PM_1)));
+            tvPm25.setText(String.format("%.1f", data.getDouble(SensorDataModel.SENSOR_PM_2_5)));
+            tvPm10.setText(String.format("%.1f", data.getDouble(SensorDataModel.SENSOR_PM_10)));
 
             /* Save data */
             /* commitCSV(data); */
