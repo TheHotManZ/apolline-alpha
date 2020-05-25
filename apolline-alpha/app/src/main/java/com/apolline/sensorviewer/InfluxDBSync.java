@@ -49,7 +49,7 @@ public class InfluxDBSync {
 
         /* Build measurement */
         Point pm = Point.measurement(SensorDataModel.SENSOR_MEASUREMENTS[value])
-                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                .time(data.getDateLocal().getTime(), TimeUnit.MILLISECONDS)
                 .tag("device", data.getDeviceName())
                 .tag("geohash", "no")
                 .tag("provider", "no")
@@ -59,6 +59,7 @@ public class InfluxDBSync {
                 .field("latitude", data.getDouble(SensorDataModel.SENSOR_LATITUDE))
                 .field("longitude", data.getDouble(SensorDataModel.SENSOR_LONGITUDE))
                 .field("value", data.getDouble(value))
+                .field("gpstime", data.getDate().getTime())
                 .build();
 
         return pm;
@@ -115,7 +116,7 @@ public class InfluxDBSync {
 
             /* Leftovers requiring additional parsing : temperature °K and compensated humidity */
             Point tempK = Point.measurement("temperature.k")
-                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .time(data.getDateLocal().getTime(), TimeUnit.MILLISECONDS)
                     .tag("device", data.getDeviceName())
                     .tag("geohash", "no")
                     .tag("provider", "no")
@@ -125,10 +126,11 @@ public class InfluxDBSync {
                     .field("latitude", data.getDouble(SensorDataModel.SENSOR_LATITUDE))
                     .field("longitude", data.getDouble(SensorDataModel.SENSOR_LONGITUDE))
                     .field("value", data.getTempK())
+                    .field("gpstime", data.getDate().getTime())
                     .build();
 
             Point rht = Point.measurement("humidity.compensated")
-                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .time(data.getDateLocal().getTime(), TimeUnit.MILLISECONDS)
                     .tag("device", data.getDeviceName())
                     .tag("geohash", "no")
                     .tag("provider", "no")
@@ -138,6 +140,7 @@ public class InfluxDBSync {
                     .field("latitude", data.getDouble(SensorDataModel.SENSOR_LATITUDE))
                     .field("longitude", data.getDouble(SensorDataModel.SENSOR_LONGITUDE))
                     .field("value", data.getDouble(SensorDataModel.SENSOR_HUMIDITY) / (1.0546 - 0.00216 * (data.getTempK() - 273.15)) * 10)
+                    .field("gpstime", data.getDate().getTime())
                     .build();
 
             BatchPoints p = BatchPoints.database("loa").points(pm1, pm25, pm10, pm1above, pm25above, pm10above, pm03above, pm05above, pm5above, tempC, tempK, hum, rht).build();
