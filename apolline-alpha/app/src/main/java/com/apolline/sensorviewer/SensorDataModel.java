@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.hardware.Sensor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -14,6 +15,8 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+
+import ch.hsr.geohash.GeoHash;
 
 public class SensorDataModel implements Parcelable {
     /* Static configuration of sensor here */
@@ -144,6 +147,13 @@ public class SensorDataModel implements Parcelable {
     public double getTempK()
     {
         return getDouble(SENSOR_TEMP) + 273.15f;
+    }
+
+    public String getGeohash()
+    {
+        String st = GeoHash.geoHashStringWithCharacterPrecision(getDouble(SENSOR_LATITUDE), getDouble(SENSOR_LONGITUDE), 10);
+        //Log.i("GEOHASH", "Geohash is " + st);
+        return st;
     }
 
     public SensorDataModel()
