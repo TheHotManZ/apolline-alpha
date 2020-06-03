@@ -29,12 +29,12 @@
         <EditTextPreference
             app:key="influx_user"
             app:title="Utilisateur InfluxDB"
-            app:defaultValue="android"/>
+            app:defaultValue="apollineapp"/>
 
         <EditTextPreference
             app:key="influx_pass"
             app:title="Mot de passe InfluxDB"
-            app:defaultValue="android"/>
+            app:defaultValue="apollineapp"/>
 
         <SeekBarPreference
             app:key="influx_delay"
