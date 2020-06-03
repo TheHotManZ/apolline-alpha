@@ -73,6 +73,7 @@ public class InfluxDBSync {
 
             /* Try to get the last sync time; sync everything if no time */
             String node = sharedPreferences.getString("influx_node", "QZ");
+            String db = sharedPreferences.getString("influx_database", "apolline");
 
             /*influxDB.write(Point.measurement("sensor_data")
                     .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -143,7 +144,7 @@ public class InfluxDBSync {
                     .field("gpstime", data.getDate().getTime())
                     .build();
 
-            BatchPoints p = BatchPoints.database("loa").points(pm1, pm25, pm10, pm1above, pm25above, pm10above, pm03above, pm05above, pm5above, tempC, tempK, hum, rht).build();
+            BatchPoints p = BatchPoints.database(db).points(pm1, pm25, pm10, pm1above, pm25above, pm10above, pm03above, pm05above, pm5above, tempC, tempK, hum, rht).build();
 
             influxDB.write(p);
 
