@@ -61,7 +61,7 @@
         android:id="@+id/btnStopAll"
         android:layout_width="219dp"
         android:layout_height="45dp"
-        android:layout_marginStart="76dp"
+        android:layout_marginStart="100dp"
         android:layout_marginTop="224dp"
         android:onClick="emergencyExit"
         android:text="Emergency stop"
@@ -96,11 +96,11 @@
         android:id="@+id/btnInflux"
         android:layout_width="225dp"
         android:layout_height="63dp"
-        android:layout_marginTop="24dp"
-        android:text="Synchroniser InfluxDB"
+        android:layout_marginTop="28dp"
         android:onClick="syncToInflux"
+        android:text="Synchroniser InfluxDB"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintHorizontal_bias="0.521"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cfgbutton" />
 
@@ -111,6 +111,7 @@
         android:layout_marginTop="24dp"
         android:text="Dernière synchronisation:"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.539"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnInflux" />
 
@@ -121,7 +122,7 @@
         android:layout_height="10dp"
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.461"
+        app:layout_constraintHorizontal_bias="0.521"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvLastSync" />
 

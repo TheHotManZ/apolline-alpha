@@ -45,7 +45,7 @@ public class Connection extends AppCompatActivity {
                    /* mDeviceStrList.add("Unknown Device\n" + device.getAddress());
                     mDetectedDevices.put(device.getAddress(), device);*/
                 } else {
-                    if(device.getName().toLowerCase().contains("appa")) {
+                    if(device.getName().toLowerCase().contains("appa")||device.getName().toLowerCase().contains("test")) {
                         mDeviceStrList.add(device.getName() + "\n" + device.getAddress());
                         mDetectedDevices.put(device.getAddress(), device);
                     }
@@ -103,8 +103,10 @@ public class Connection extends AppCompatActivity {
             }
         });
         // Bluetooth discovery
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                1);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.BLUETOOTH_ADMIN},
+        1);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if(mBluetoothAdapter.isDiscovering())
             mBluetoothAdapter.cancelDiscovery();
