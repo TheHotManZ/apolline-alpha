@@ -38,12 +38,15 @@ import java.util.HashMap;
 
 public class Sensors extends AppCompatActivity {
     private GraphView graphTemp;
-    private TextView txtBatterie, txtTemp, tvState;
+    private TextView txtBatterie, txtTemp, txtHumidity, tvState;
     private TextView tvPm1, tvPm25, tvPm10;
 
     private Boolean stop;
     private Boolean sensorsFill;
     private Context ctx;
+
+    private long index;
+
 
     private String buf = "";
 
@@ -133,9 +136,10 @@ public class Sensors extends AppCompatActivity {
 
             /* Update graph */
             try {
-                pm1series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_1)), true, 100, false);
-                pm25series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_2_5)), true, 100, false);
-                pm10series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_10)), true, 100, false);
+                pm1series.draw();
+                    pm1series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_1)), true, 1000, false);
+                    pm25series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_2_5)), true, 1000, false);
+                    pm10series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_10)), true, 1000, false);
             } catch (Exception e) {
                 Log.i("BLU", "There was an error appending data to the graph. " + e.getMessage());
             }
@@ -159,7 +163,10 @@ public class Sensors extends AppCompatActivity {
             }
 
             /* Update temperature */
-            txtTemp.setText("Température: " + data.getDouble(SensorDataModel.SENSOR_TEMP) + "°C / " + data.getTempK() + "K");
+            txtTemp.setText("Température: " + data.getDouble(SensorDataModel.SENSOR_TEMP) + "°C / " + round(data.getTempK(), 2) + "K");
+
+            /* Update humidty */
+            txtHumidity.setText("L'humidité: " + data.getHumidity());
 
             /* Set displayed values of sensors */
             tvPm1.setText(String.format("%.1f", data.getDouble(SensorDataModel.SENSOR_PM_1)));
@@ -206,6 +213,7 @@ public class Sensors extends AppCompatActivity {
         graphTemp = findViewById(R.id.graphTemp);
         txtBatterie = findViewById(R.id.txtBatterie);
         txtTemp = findViewById(R.id.txtTemp);
+        txtHumidity = findViewById(R.id.txtHumidity);
         tvState = findViewById(R.id.tvState);
         tvPm1 = findViewById(R.id.tvPm1);
         tvPm25 = findViewById(R.id.tvPm25);
@@ -227,6 +235,8 @@ public class Sensors extends AppCompatActivity {
         graphTemp.addSeries(pm25series);
         graphTemp.addSeries(pm10series);
 
+
+
         graphTemp.getLegendRenderer().setVisible(true);
         graphTemp.getGridLabelRenderer().setHorizontalLabelsVisible(true);
         graphTemp.getGridLabelRenderer().setHorizontalLabelsAngle(90);
@@ -234,12 +244,14 @@ public class Sensors extends AppCompatActivity {
         graphTemp.getViewport().setScrollable(true);
         graphTemp.getViewport().setScalableY(true);
         graphTemp.getViewport().setScrollableY(true);
+        graphTemp.getViewport().setMaxY(30);
         graphTemp.getViewport().setYAxisBoundsManual(true);
         graphTemp.getViewport().setXAxisBoundsManual(true);
         graphTemp.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(ctx, new SimpleDateFormat("HH:mm:ss")));
         graphTemp.getGridLabelRenderer().setNumHorizontalLabels(10);
+
         // set manual x bounds to have nice steps
-        graphTemp.getGridLabelRenderer().setHumanRounding(false);
+        graphTemp.getGridLabelRenderer().setHumanRounding(true);
 
         stop = false;
         sensorsFill = false;
@@ -269,5 +281,14 @@ public class Sensors extends AppCompatActivity {
         stop = true;
         sensorsFill = false;
         super.onPause();
+    }
+
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 }

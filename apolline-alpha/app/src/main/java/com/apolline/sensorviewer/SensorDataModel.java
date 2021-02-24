@@ -149,6 +149,11 @@ public class SensorDataModel implements Parcelable {
         return getDouble(SENSOR_TEMP) + 273.15f;
     }
 
+    public double getHumidity()
+    {
+        return getDouble(SENSOR_HUMIDITY);
+    }
+
     public String getGeohash()
     {
         String st = GeoHash.geoHashStringWithCharacterPrecision(getDouble(SENSOR_LATITUDE), getDouble(SENSOR_LONGITUDE), 10);
