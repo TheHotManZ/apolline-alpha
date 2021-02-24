@@ -136,7 +136,6 @@ public class Sensors extends AppCompatActivity {
 
             /* Update graph */
             try {
-                pm1series.draw();
                     pm1series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_1)), true, 1000, false);
                     pm25series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_2_5)), true, 1000, false);
                     pm10series.appendData(new DataPoint(data.getDate(), data.getDouble(SensorDataModel.SENSOR_PM_10)), true, 1000, false);
@@ -245,6 +244,7 @@ public class Sensors extends AppCompatActivity {
         graphTemp.getViewport().setScalableY(true);
         graphTemp.getViewport().setScrollableY(true);
         graphTemp.getViewport().setMaxY(30);
+        graphTemp.getViewport().setMinX(-1000000);
         graphTemp.getViewport().setYAxisBoundsManual(true);
         graphTemp.getViewport().setXAxisBoundsManual(true);
         graphTemp.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(ctx, new SimpleDateFormat("HH:mm:ss")));
